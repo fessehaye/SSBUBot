@@ -14,7 +14,7 @@ const options = {
         username: process.env.TWITCH_USERNAME,
         password: process.env.TWITCH_PASSWORD
     },
-    channels: ['ssbuniversity']
+    channels: [process.env.TWITCH_CHANNEL]
 };
 
 const smashController = new SmashController();
@@ -23,23 +23,23 @@ const client = new tmi.client(options);
 client.connect();
 
 client.on('connected', (address,port) => {
-    client.action('ssbuniversity','Connected to channel');
+    client.action(process.env.TWITCH_CHANNEL,'Connected to channel');
 });
 
 client.on('chat',(channel, user, message, self) => {
     if (message === '!bestGame') {
-        client.action('ssbuniversity','Melee is the best game!');
+        client.action(process.env.TWITCH_CHANNEL,'Melee is the best game!');
     }
 
     if (message === '!tourneyInfo') {
         smashController.getInfo()
-            .then((msg) => client.action('ssbuniversity',msg));
+            .then((msg) => client.action(process.env.TWITCH_CHANNEL,msg));
     }
 
     if (message.startsWith("!smashStats")) {
         const [x,gamerTag] = message.split(/\s+/);
         let msg = gamerTag + " is doing great!";
         smashController.getStats(gamerTag);
-        client.action('ssbuniversity',msg);
+        client.action(process.env.TWITCH_CHANNEL,msg);
     }
 });
