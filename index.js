@@ -1,5 +1,6 @@
 const tmi = require('tmi.js');
-require('dotenv').config();
+import 'dotenv/config';
+import SmashController from "./smashController";
 
 const options = {
     options: {
@@ -16,6 +17,7 @@ const options = {
     channels: ['ssbuniversity']
 };
 
+const smashController = new SmashController();
 const client = new tmi.client(options);
 
 client.connect();
@@ -29,8 +31,15 @@ client.on('chat',(channel, user, message, self) => {
         client.action('ssbuniversity','Melee is the best game!');
     }
 
+    if (message === '!tourneyInfo') {
+        smashController.getInfo()
+            .then((msg) => client.action('ssbuniversity',msg));
+    }
+
     if (message.startsWith("!smashStats")) {
-        let msg = message.split("!smashStats")[1].trim() + " is doing great!"
+        const [x,gamerTag] = message.split(/\s+/);
+        let msg = gamerTag + " is doing great!";
+        smashController.getStats(gamerTag);
         client.action('ssbuniversity',msg);
     }
 });
