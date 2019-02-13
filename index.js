@@ -36,9 +36,9 @@ client.on('chat',(channel, user, message, self) => {
             .then((msg) => client.action(process.env.TWITCH_CHANNEL,msg));
     }
 
-    if (message.startsWith("!smashStats")) {
+    if (message.startsWith("!playerResults")) {
         const [x,gamerTag] = message.split(/\s+/);
-        let msg = gamerTag + " is doing great!";
+        
         smashController.getStats(gamerTag);
         client.action(process.env.TWITCH_CHANNEL,msg);
     }
