@@ -1,45 +1,53 @@
 import 'cross-fetch/polyfill';
 import ApolloClient from 'apollo-boost';
 import 'dotenv/config';
-import {GET_TOURNEY} from './query';
-
-const client = new ApolloClient({
-    uri: 'https://api.smash.gg/gql/alpha',
-    request: operation => {
-    operation.setContext({
-      headers: {
-        authorization: `Bearer ${process.env.SMASH_GG_API}`,
-      },
-    });
-  },
-});
+import { GET_TOURNEY } from './query';
 
 export default class SmashController {
-    constructor(){
-        this.slug = process.env.SMASH_GG_SLUG;   
-    }
+	constructor(slug = '') {
+		this.slug = slug;
 
-    getStats(tag){
-        console.log(tag);
-    }
+		this.client = new ApolloClient({
+			uri: 'https://api.smash.gg/gql/alpha',
+			request: operation => {
+				operation.setContext({
+					headers: {
+						authorization: `Bearer ${process.env.SMASH_GG_API}`,
+					},
+				});
+			},
+		});
+	}
 
-    getInfo(){
-        const uniqueElements = arr => [...new Set(arr)];
+	getStats(tag) {
+		console.log(tag);
+	}
 
-        return client
-            .query({
-                query: GET_TOURNEY,
-                variables: {
-                    slug: this.slug,
-                },
-            })
-            .then((q) => {
-                const name = q.data.tournament.name;
-                const city = q.data.tournament.city;
-                const entrants = q.data.tournament.participants.pageInfo.total;
-                const games = uniqueElements(q.data.tournament.events.map((e) => e.videogame.name));
-                
-                return `The Tournament ${name}, is being held in ${city} with ${entrants} unique entrants. Game(s) Featured at this event are ${games.join(', ')}.`;   
-            });
-    }
+	setSlug(slug) {
+		this.slug = slug;
+	}
+
+	parseInfo(data) {
+		const name = data.tournament.name;
+		const city = data.tournament.city;
+		const entrants = data.tournament.participants.pageInfo.total;
+		const games = uniqueElements(data.tournament.events.map(e => e.videogame.name));
+
+		return `The Tournament ${name}, is being held in ${city} with ${entrants} unique entrants. Game(s) Featured at this event are ${games.join(', ')}.`;
+	}
+
+	getInfo() {
+		const uniqueElements = arr => [...new Set(arr)];
+
+		return this.client
+			.query({
+				query: GET_TOURNEY,
+				variables: {
+					slug: this.slug,
+				},
+			})
+			.then(q => {
+				return this.pageInfo(q.data);
+			});
+	}
 }
